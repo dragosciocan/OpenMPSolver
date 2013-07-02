@@ -12,8 +12,6 @@
 #include "convex_hull.h"
 #include "instance.h"
 #include "time.h"
-#include <omp.h>
-
 
 namespace distributed_solver {
 
@@ -125,6 +123,13 @@ namespace distributed_solver {
 
     // This method is modified
     void AllocationMW::CalculateSlacks() {
+        for (int j = 0; j < num_advertisers_; ++j) {
+            slacks_[j] = (-1) * (*budgets_)[j];
+            for (int i = 0; i < (*solution_)[j].size(); ++i) {
+                slacks_[j] += (*solution_)[j][i].second.first * (*bids_matrix_)[j][i].second;
+            }
+        }
+        /*
         omp_set_num_threads(4);
     	#pragma omp parallel private ( j, myID, threads, ending )
     	{
@@ -136,11 +141,11 @@ namespace distributed_solver {
     		for (j = myID * num_advertisers_ / threads; j < ending; ++j) {
     			slacks_[j] = (-1) * (*budgets_)[j];
     			for (int i = 0; i < (*solution_)[j].size(); ++i) {
-    				slacks_[j] += (*solution_)[j][i].second.second * (*bids_matrix_)[j][i].second;
-    				//slacks_[j] = slacks_[j] + iter->second.first * (*bids_matrix_)[j].find(iter->first)->second;
+    				slacks_[j] += (*solution_)[j][i].second.first * (*bids_matrix_)[j][i].second;
     			}
     		}
         }
+         */
     }
 
     void AllocationMW::UpdateWeights() {
@@ -263,11 +268,11 @@ namespace distributed_solver {
             diff = ((float)t2-(float)t1);
             cout << "execution time of relaxation computation was " << diff << "\n";
 
-            t1 = clock();
+            //t1 = clock();
             //Instance::UpdateAvgPrimal(t, solution_);
-            t2 = clock();
-            diff = ((float)t2-(float)t1);
-            cout << "execution time of average primal update was " << diff << "\n";
+            //t2 = clock();
+            //diff = ((float)t2-(float)t1);
+            //cout << "execution time of average primal update was " << diff << "\n";
 
             // Runs CPLEX for debugging only, should be turned off.
             // VerifySolution();

@@ -24,6 +24,7 @@ namespace distributed_solver {
         num_iterations_ = 0;
         numerical_accuracy_tolerance_ = numerical_accuracy_tolerance;
 
+        primal_changes_.reserve(num_partitions);
         for (int i = 0; i < num_partitions; ++i) {
             primal_changes_.push_back(make_pair(make_pair(-1, 0.0), make_pair(-1, 0.0)));
         }
@@ -73,33 +74,19 @@ namespace distributed_solver {
         t1 = clock();
         // Find optimal budget allocations to problems.
         cout << "Solving subproblems \n";
-
         /*
         for (int i = 0; i < num_partitions_; ++i) {
             //subproblems_[i].SolveSubproblem(iteration, i);
             //subproblems_[i].SolveSubproblemConvexHull(iteration, i);
-            subproblems_[i].SolveSubproblemConvexHullOptimized(iteration, i);
+            subproblems_[i].SolveSubproblemConvexHullOptimized();
         }
-         */
-
-        int num_threads = 4;
-        int threadId = 0;
-        int i, ending;
-
-        omp_set_num_threads(num_threads);
-
-        #pragma omp parallel private ( threadId, i, ending ) \
-        shared( iteration )
-
-		{
-			threadId = omp_get_thread_num();
-			ending = (threadId + 1 ) * num_partitions_ / num_threads;
-
-			for (i = threadId * num_partitions_ / num_threads; i < ending; i++){
-				subproblems_[i].SolveSubproblemConvexHullOptimized(iteration, i);
+    */
+        omp_set_num_threads(4);
+        #pragma omp parallel for
+            for (int i = 0; i < num_partitions_; ++i) {
+				subproblems_[i].SolveSubproblemConvexHullOptimized();
 			}
-		}
-
+      
         t2 = clock();
         diff = ((float)t2-(float)t1);
         cout << "subproblems took  " << diff << "\n";
@@ -117,8 +104,7 @@ namespace distributed_solver {
         t1 = clock();
         long double dual_val = 0;
         primal_assignment_test_ = 0;
-
-        /*
+        
         for (int i = 0; i < num_partitions_; ++i) {
             if (budget_allocation_[i].second > 0) {
                 long double u = subproblems_[i].envelope_points_[budget_allocation_[i].first].first;
@@ -127,7 +113,7 @@ namespace distributed_solver {
                 ConstructSubproblemPrimal(i, budget_allocation_[i].second, budget_allocation_[i].first);
             }
         }
-        */
+        /*
 
         threadId = 0;
 
@@ -147,7 +133,12 @@ namespace distributed_solver {
             }
 
         }
-
+*/
+/*
+        for (int l = 0; l < num_partitions_; ++l) {
+            cout << l << ", " << primal_changes_[l].first.first << ", " << primal_changes_[l].first.second << "\n";
+        }
+*/        
         Instance::UpdatePrimal(iteration, solution_, primal_changes_);
 
         t2 = clock();
@@ -207,6 +198,10 @@ namespace distributed_solver {
             //(*primal_sol)[subproblems_[subproblem_index].advertiser_index_->at(max_ratio_index)][subproblem_index] = budget_allocation / subproblems_[subproblem_index].constraints_[max_ratio_index].coefficient_;
 
             primal_changes_[subproblem_index].first = make_pair(subproblems_[subproblem_index].constraints_[max_ratio_index].advertiser_index_, budget_allocation / subproblems_[subproblem_index].constraints_[max_ratio_index].coefficient_);
+            /*
+            cout << "tried to insert " << subproblems_[subproblem_index].constraints_[max_ratio_index].advertiser_index_ << ", " << budget_allocation / subproblems_[subproblem_index].constraints_[max_ratio_index].coefficient_ << "\n";
+            cout << "and got set to " << subproblem_index << ", " << primal_changes_[subproblem_index].first.first << ", " << primal_changes_[subproblem_index].first.second << "\n";
+             */
             primal_changes_[subproblem_index].second = make_pair(-1, 0.0);
             allocation_value = primal_changes_[subproblem_index].first.second * subproblems_[subproblem_index].constraints_[max_ratio_index].price_;
             primal_assignment_test_ += allocation_value;

@@ -187,19 +187,11 @@ namespace distributed_solver {
         active_constraints.clear();
     }
 
-    void Subproblem::SolveSubproblemConvexHullOptimized(int iteration, int index) {
+    void Subproblem::SolveSubproblemConvexHullOptimized() {
         if (constraints_.size() < 1) {
             return;
         }
-
-        clock_t t1, t2, t3;
-        float diff;
-        t1 = clock();
         std::vector<Constraint> active_constraints = upper_envelope(&constraints_, 0.00000000000001);
-        t2 = clock();
-        diff = ((float)t2-(float)t1);
-        t3 = clock();
-        diff = ((float)t3-(float)t2);
 
         // Go through active constraints, create envelope points.
         envelope_points_.clear();

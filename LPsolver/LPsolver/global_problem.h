@@ -29,7 +29,6 @@ namespace distributed_solver {
         vector<long double> slacks_;
 
         vector<vector<pair<int, pair<long double, long double> > > >* solution_;
-
         vector<pair<pair<int, long double>, pair<int, long double> > > primal_changes_;
 
         GlobalProblem(int num_partitions, long double max_bid, long double advertiser_indegree,

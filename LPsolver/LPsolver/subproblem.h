@@ -45,7 +45,7 @@ namespace distributed_solver {
         Subproblem(int num_vars, std::vector<std::pair<long double, long double> >* coefficients, std::vector<int>* advertiser_index);
         void SolveSubproblem(int iteration, int index);
         void SolveSubproblemConvexHull(int iteration, int index);
-        void SolveSubproblemConvexHullOptimized(int iteration, int index);
+        void SolveSubproblemConvexHullOptimized();
     };
 }
 
